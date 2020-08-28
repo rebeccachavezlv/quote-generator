@@ -27,27 +27,44 @@ async function getQuote() {
     try {
         const response = await fetch (proxyUrl + apiUrl);
         const data = await response.json();
+
+        // Makes sure quote doesn't repeat
+        if (quoteText.innerText === data.quoteText){
+            console.log('getting duplicate')
+            return getQuote();
+        } else {
+            quoteText.innerText = data.quoteText
+        }
+
         // If author is blank, add 'unknown'
         if (data.quoteAuthor === ''){
             authorText.innerText = 'Unknown';
         } else {
             authorText.innerText = data.quoteAuthor;
         }
+
         // Reduce font size for long quotes
         if (data.quoteText.length > 120) {
             quoteText.classList.add('long-quote');
         } else {
             quoteText.classList.remove('long-quote');
         }
-        quoteText.innerText = data.quoteText;
+
         // Stop Loader, Show Quote
         hideLoadingSpinner()
+
+        // Reset Error Counter
+        errorCounter = 0;
+
     } catch (error) {
-        if (errorCounter < 10){
+        if (errorCounter < 12){
             console.log('trying again');
             errorCounter++;
             getQuote();
         } else {
+            quoteText.innerText = 'Oops! Try again.';
+            authorText.innerText = '';
+            hideLoadingSpinner();
             console.log('cannot get quote')
         }
     }
